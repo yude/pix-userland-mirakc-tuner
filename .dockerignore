@@ -1,6 +1,7 @@
 .git
 .github
 testdata
+tests
 *_test.go
 README.md
 compose.yaml

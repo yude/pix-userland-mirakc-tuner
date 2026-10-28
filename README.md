@@ -59,9 +59,10 @@ go test ./...
 go build -o pix-mirakc-tuner .
 docker compose config --quiet
 docker build -t pix-userland-mirakc-tuner:local .
+python3 tests/docker_smoke.py
 ```
 
-Go テストは合成 TS を出す mock `pix-ts` を使い、引数変換、TS バイト列、標準エラー、終了状態を確認します。Docker ビルドは pix-userland の必要なソースだけを sparse checkout し、`assets/` を取得しません。GitHub Actions は `main` への push で `ghcr.io/yude/pix-userland-mirakc-tuner:main` とコミット SHA タグを公開します。公開イメージには mirakc・アダプター・`pix-ts` のみを含め、`pixd` と機器用 assets は含めません。
+Go テストは合成 TS を出す mock `pix-ts` を使い、引数変換、TS バイト列、標準エラー、終了状態を確認します。Docker smoke test は同じく合成 TS を mirakc に流し、HTTP ストリーム、サービス認識、切断後の再利用を確認します。Docker ビルドは pix-userland の必要なソースだけを sparse checkout し、`assets/` を取得しません。GitHub Actions は Go テストと Docker smoke test が通った後、`main` への push で `ghcr.io/yude/pix-userland-mirakc-tuner:main` とコミット SHA タグを公開します。イメージには mirakc・アダプター・`pix-ts` のみを含め、`pixd` と機器用 assets は含めません。
 
 現時点の自動検査は合成 TS とビルドまでです。DT295 実機による Linux 上の受信、mirakc のサービス・EPG認識、長時間稼働は別途確認が必要です。
 
