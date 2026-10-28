@@ -1,0 +1,10 @@
+.git
+.github
+testdata
+*_test.go
+README.md
+compose.yaml
+config.yml
+.env
+assets
+*.ts

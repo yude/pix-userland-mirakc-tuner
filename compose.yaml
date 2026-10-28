@@ -1,0 +1,29 @@
+services:
+  mirakc:
+    image: ghcr.io/yude/pix-userland-mirakc-tuner:main
+    build: .
+    init: true
+    restart: unless-stopped
+    user: "${PIX_UID:-0}:${PIX_GID:-0}"
+    ports:
+      - "${MIRAKC_PORT:-40772}:40772"
+    environment:
+      TZ: Asia/Tokyo
+      RUST_LOG: info
+    volumes:
+      - ./config.yml:/etc/mirakc/config.yml:ro
+      - type: bind
+        source: ${PIX_RUNTIME_DIR:-/run/pixd}
+        target: /run/pixd
+        bind:
+          create_host_path: false
+      - mirakc-epg:/var/lib/mirakc/epg
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:40772/api/tuners"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  mirakc-epg:
