@@ -1,6 +1,6 @@
 # pix-userland-mirakc-tuner
 
-pix-userland に対応しているチューナーを mirakc から使うための Go 製コマンドと Docker イメージです。イメージには mirakc、`pix-mirakc-tuner`、現行の `pix-ts` クライアントを入れます。USB デバイスを所有する `pixd` は Linux ホスト上で動かし、コンテナとは `/run/pixd` の Unix socket だけを共有します。
+pix-userland が対応しているチューナーを mirakc から使うための Go 製コマンドと Docker イメージです。イメージには mirakc、`pix-mirakc-tuner`、現行の `pix-ts` クライアントを入れます。USB デバイスを所有する `pixd` は Linux ホスト上で動かし、コンテナとは `/run/pixd` の Unix socket だけを共有します。
 
 `pix-mirakc-tuner` は pix-userland 向けのチューナーコマンドを Go で実装したものです。mirakc が渡す種別・チャンネル・期間を検査して `pix-ts` に `exec` します。TS は `pix-ts` の標準出力から mirakc へ直接流れ、診断と終了状態もそのまま伝わります。
 
