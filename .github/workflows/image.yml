@@ -17,7 +17,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version-file: go.mod
+          go-version: stable
+          check-latest: true
       - name: Test Go adapter
         run: go test ./...
 
@@ -43,7 +44,7 @@ jobs:
           TARGET_PLATFORM: ${{ matrix.platform }}
           TAG_SUFFIX: ${{ matrix.suffix }}
         run: |
-          docker buildx build --platform "$TARGET_PLATFORM" --load \
+          docker buildx build --pull --platform "$TARGET_PLATFORM" --load \
             -t "ghcr.io/yude/pix-userland-mirakc-tuner:test-${TAG_SUFFIX}" .
       - name: Test mirakc HTTP path with synthetic TS
         env:

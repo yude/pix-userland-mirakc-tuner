@@ -1,12 +1,12 @@
 # syntax=docker/dockerfile:1
 # The published image contains mirakc, this adapter, and the pix-ts client.
 # pixd and device assets remain on the host.
-FROM --platform=$BUILDPLATFORM docker.io/golang:1.26-alpine AS adapter-builder
+FROM --platform=$BUILDPLATFORM docker.io/golang:alpine AS adapter-builder
 WORKDIR /src
 COPY go.mod main.go ./
 ARG TARGETOS TARGETARCH TARGETVARIANT
 RUN if [ "$TARGETARCH" = arm ]; then export GOARM="${TARGETVARIANT#v}"; fi; \
-    CGO_ENABLED=0 GOOS="$TARGETOS" GOARCH="$TARGETARCH" go build -trimpath -ldflags='-s -w' -o /out/pix-mirakc-tuner .
+    go version && CGO_ENABLED=0 GOOS="$TARGETOS" GOARCH="$TARGETARCH" go build -trimpath -ldflags='-s -w' -o /out/pix-mirakc-tuner .
 
 FROM docker.io/mirakc/mirakc:alpine AS pix-ts-builder
 USER root
