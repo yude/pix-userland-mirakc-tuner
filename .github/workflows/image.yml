@@ -24,20 +24,26 @@ jobs:
 
   image:
     needs: unit
-    runs-on: ubuntu-24.04
+    runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
       matrix:
         include:
           - platform: linux/amd64
             suffix: amd64
+            runner: ubuntu-24.04
           - platform: linux/arm64
             suffix: arm64
+            runner: ubuntu-24.04-arm
           - platform: linux/arm/v7
             suffix: armv7
+            runner: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-qemu-action@v3
+        if: matrix.suffix == 'armv7'
+        with:
+          platforms: arm
       - uses: docker/setup-buildx-action@v3
       - name: Build platform image
         env:

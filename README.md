@@ -62,7 +62,7 @@ docker build --pull -t pix-userland-mirakc-tuner:local .
 python3 tests/docker_smoke.py
 ```
 
-Go はビルド時点の最新安定版を使います。Docker は `golang:alpine` を使用し、Actions は `--pull` でベースイメージを更新します。Go テストも `setup-go` の `stable` を使います。
+Go はビルド時点の最新安定版を使います。Docker は `golang:alpine` を使用し、Actions は `--pull` でベースイメージを更新します。Go テストも `setup-go` の `stable` を使います。arm64・armv7 のイメージは `ubuntu-24.04-arm` ランナーでビルドし、armv7 の実行には QEMU を使います。
 
 Go テストは合成 TS を出す mock `pix-ts` を使い、引数変換、TS バイト列、標準エラー、終了状態を確認します。Docker smoke test は同じく合成 TS を mirakc に流し、HTTP ストリーム、サービス認識、切断後の再利用を確認します。Docker ビルドは pix-userland の必要なソースだけを sparse checkout し、`assets/` を取得しません。GitHub Actions は各プラットフォームで Docker smoke test が通った後、`main` への push で `ghcr.io/yude/pix-userland-mirakc-tuner:main` とコミット SHA タグの multi-platform manifest を公開します。イメージには mirakc・アダプター・`pix-ts` のみを含め、`pixd` と機器用 assets は含めません。
 
