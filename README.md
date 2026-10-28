@@ -1,6 +1,6 @@
 # pix-userland-mirakc-tuner
 
-PIX-DT295 を mirakc のチューナーとして使うための Go 製コマンドと Docker イメージです。イメージには mirakc、`pix-mirakc-tuner`、現行の `pix-ts` クライアントを入れます。USB デバイスを所有する `pixd` は Linux ホスト上で動かし、コンテナとは `/run/pixd` の Unix socket だけを共有します。EPGStation、外部 B25 サーバー、PC/SC カードリーダーは含みません。
+PIX-DT295 を mirakc のチューナーとして使うための Go 製コマンドと Docker イメージです。イメージには mirakc、`pix-mirakc-tuner`、現行の `pix-ts` クライアントを入れます。USB デバイスを所有する `pixd` は Linux ホスト上で動かし、コンテナとは `/run/pixd` の Unix socket だけを共有します。
 
 `pix-mirakc-tuner` は pix-userland 向けのチューナーコマンドを Go で実装したものです。mirakc が渡す種別・チャンネル・期間を検査して `pix-ts` に `exec` します。TS は `pix-ts` の標準出力から mirakc へ直接流れ、診断と終了状態もそのまま伝わります。
 
@@ -18,7 +18,7 @@ pixd --device serial:YOUR_DEVICE_SERIAL \
   --instance dt295 --runtime-dir /run/pixd --group
 ```
 
-## Compose で起動
+## Docker Compose で起動
 
 `config.yml` の `T27` を地域の物理チャンネルに変更します。ホストの `pixd` が起動し、`/run/pixd` が存在する状態で実行します。通常の rootful Docker なら Compose の既定ユーザー `0:0` でホスト socket に接続できます。コンテナの UID/GID を制限する場合は `.env.example` を `.env` にコピーし、ホストの `pixd` ユーザーに合わせて `PIX_UID` と `PIX_GID` を設定します。
 
@@ -37,7 +37,7 @@ curl -fsS --max-time 5 \
   -o /tmp/pix-mirakc-check.ts
 ```
 
-この `curl` は連続ストリームを5秒で切るので exit 28 はあり得ます。保存ファイルを検査し、mirakc のチューナーが free に戻って再取得できることを確認します。録画や raw TS をこのリポジトリへ追加しないでください。
+この `curl` は連続ストリームを5秒で切るので exit code が 28 になり得ます。保存ファイルを検査し、mirakc のチューナーが free に戻って再取得できることを確認します。録画や raw TS をこのリポジトリへ追加しないでください。
 
 ## 接続の仕組み
 
