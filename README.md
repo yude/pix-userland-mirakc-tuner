@@ -6,7 +6,7 @@ PIX-DT295 を mirakc のチューナーとして使うための Go 製コマン�
 
 ## 前提
 
-- Linux x86_64 と Docker Compose。現在のイメージビルドは `linux/amd64` です。
+- Docker Compose。イメージは `linux/amd64`、`linux/arm64`、`linux/arm/v7` 向けにビルドします。armv6 (`linux/arm/v6`) は mirakc の公式ベースイメージが対応していないため含めません。
 - USB に接続した PIX-DT295、受信設備、適切な機器用 assets、およびホスト上の [pix-userland](https://github.com/Khronos31/pix-userland) の `pixd`。このリポジトリとイメージには assets を含めません。
 - ホストの `pixd` が `--instance dt295 --runtime-dir /run/pixd --group` で起動していること。`pixd` とコンテナの `pix-ts` は同じ Core/IPC 版を使います。イメージ内の `pix-ts` は [pix-userland の `main`](https://github.com/Khronos31/pix-userland/tree/main) のコミットを Dockerfile の `PIX_USERLAND_REF` に固定してビルドします。ホスト側も同じコミットの `pixd` を使ってください。
 
@@ -62,7 +62,7 @@ docker build -t pix-userland-mirakc-tuner:local .
 python3 tests/docker_smoke.py
 ```
 
-Go テストは合成 TS を出す mock `pix-ts` を使い、引数変換、TS バイト列、標準エラー、終了状態を確認します。Docker smoke test は同じく合成 TS を mirakc に流し、HTTP ストリーム、サービス認識、切断後の再利用を確認します。Docker ビルドは pix-userland の必要なソースだけを sparse checkout し、`assets/` を取得しません。GitHub Actions は Go テストと Docker smoke test が通った後、`main` への push で `ghcr.io/yude/pix-userland-mirakc-tuner:main` とコミット SHA タグを公開します。イメージには mirakc・アダプター・`pix-ts` のみを含め、`pixd` と機器用 assets は含めません。
+Go テストは合成 TS を出す mock `pix-ts` を使い、引数変換、TS バイト列、標準エラー、終了状態を確認します。Docker smoke test は同じく合成 TS を mirakc に流し、HTTP ストリーム、サービス認識、切断後の再利用を確認します。Docker ビルドは pix-userland の必要なソースだけを sparse checkout し、`assets/` を取得しません。GitHub Actions は各プラットフォームで Docker smoke test が通った後、`main` への push で `ghcr.io/yude/pix-userland-mirakc-tuner:main` とコミット SHA タグの multi-platform manifest を公開します。イメージには mirakc・アダプター・`pix-ts` のみを含め、`pixd` と機器用 assets は含めません。
 
 現時点の自動検査は合成 TS とビルドまでです。DT295 実機による Linux 上の受信、mirakc のサービス・EPG認識、長時間稼働は別途確認が必要です。
 

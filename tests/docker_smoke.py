@@ -14,6 +14,7 @@ import uuid
 ROOT = Path(__file__).resolve().parents[1]
 HERE = Path(__file__).resolve().parent
 IMAGE = os.environ.get("MIRAKC_TEST_IMAGE", "pix-userland-mirakc-tuner:local")
+PLATFORM = os.environ.get("MIRAKC_TEST_PLATFORM")
 
 
 def docker(*args):
@@ -48,7 +49,10 @@ def main():
         config.write_text((ROOT / "config.yml").read_text() + "\njobs:\n  sync-clocks:\n    disabled: true\n  update-schedules:\n    disabled: true\n")
         (root / "epg").mkdir()
         try:
-            docker("run", "-d", "--rm", "--init", "--name", name,
+            run_args = ["run", "-d", "--rm", "--init", "--name", name]
+            if PLATFORM:
+                run_args.extend(["--platform", PLATFORM])
+            docker(*run_args,
                    "-p", "127.0.0.1::40772", "-e", "PIX_TS_BIN=/usr/local/bin/mock-pix-ts",
                    "-e", "PIX_MOCK_TS=/tmp/synthetic.ts",
                    "-v", f"{config}:/etc/mirakc/config.yml:ro",

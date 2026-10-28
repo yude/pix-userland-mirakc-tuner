@@ -1,12 +1,15 @@
 # syntax=docker/dockerfile:1
 # The published image contains mirakc, this adapter, and the pix-ts client.
 # pixd and device assets remain on the host.
-FROM docker.io/golang:1.26-alpine AS adapter-builder
+FROM --platform=$BUILDPLATFORM docker.io/golang:1.26-alpine AS adapter-builder
 WORKDIR /src
 COPY go.mod main.go ./
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags='-s -w' -o /out/pix-mirakc-tuner .
+ARG TARGETOS TARGETARCH TARGETVARIANT
+RUN if [ "$TARGETARCH" = arm ]; then export GOARM="${TARGETVARIANT#v}"; fi; \
+    CGO_ENABLED=0 GOOS="$TARGETOS" GOARCH="$TARGETARCH" go build -trimpath -ldflags='-s -w' -o /out/pix-mirakc-tuner .
 
-FROM docker.io/alpine:3.22 AS pix-ts-builder
+FROM docker.io/mirakc/mirakc:alpine AS pix-ts-builder
+USER root
 RUN apk add --no-cache build-base cmake git libusb-dev ninja pkgconf python3
 ARG PIX_USERLAND_REF=6ad19a229582ed043a0cea479abaf8295b0f62e2
 # Sparse partial checkout excludes assets/ and all device material from build layers.
