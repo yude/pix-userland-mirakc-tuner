@@ -21,6 +21,10 @@ jobs:
           check-latest: true
       - name: Test Go adapter
         run: go test ./...
+      - name: Validate Compose configurations
+        run: |
+          docker compose config --quiet
+          PIX_DEVICE=usb:1-2 PIX_FIRMWARE_FILE=/tmp/test-only-firmware-path docker compose -f compose.usb.yaml config --quiet
 
   image:
     needs: unit
@@ -57,15 +61,20 @@ jobs:
           MIRAKC_TEST_IMAGE: ghcr.io/yude/pix-userland-mirakc-tuner:test-${{ matrix.suffix }}
           MIRAKC_TEST_PLATFORM: ${{ matrix.platform }}
         run: python3 tests/docker_smoke.py
+      - name: Test pixd launch without USB hardware
+        env:
+          MIRAKC_TEST_IMAGE: ghcr.io/yude/pix-userland-mirakc-tuner:test-${{ matrix.suffix }}
+          MIRAKC_TEST_PLATFORM: ${{ matrix.platform }}
+        run: python3 tests/pixd_smoke.py
       - name: Log in to GHCR
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish tested platform image
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         env:
           TAG_SUFFIX: ${{ matrix.suffix }}
         run: |
@@ -74,7 +83,7 @@ jobs:
           docker push "${image}:sha-${GITHUB_SHA}-${TAG_SUFFIX}"
 
   manifest:
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     needs: image
     runs-on: ubuntu-26.04
     steps:

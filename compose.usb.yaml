@@ -1,0 +1,71 @@
+# Standalone alternative to compose.yaml: both pixd and mirakc run in Docker.
+services:
+  pixd:
+    image: ghcr.io/yude/pix-userland-mirakc-tuner:main
+    build: .
+    entrypoint: [/usr/local/bin/pixd-launch]
+    command:
+      - --device
+      - '${PIX_DEVICE:?Set PIX_DEVICE to serial:VALUE or usb:BUS-PORT}'
+      - --instance
+      - dt295
+      - --runtime-dir
+      - /run/pixd
+      - --group
+      - --firmware
+      - /firmware/dt295.bin
+    user: '0:0'
+    init: true
+    network_mode: none
+    restart: 'on-failure:3'
+    stop_grace_period: 30s
+    device_cgroup_rules:
+      - 'c 189:* rw'
+    volumes:
+      - type: bind
+        source: /dev/bus/usb
+        target: /dev/bus/usb
+        bind:
+          create_host_path: false
+      - type: bind
+        source: '${PIX_FIRMWARE_FILE:?Set PIX_FIRMWARE_FILE to the existing DT295 firmware bundle}'
+        target: /firmware/dt295.bin
+        read_only: true
+        bind:
+          create_host_path: false
+      - pixd-ipc:/run/pixd
+    healthcheck:
+      test: [CMD, pixctl, --instance, dt295, --runtime-dir, /run/pixd, --group, status]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  mirakc:
+    image: ghcr.io/yude/pix-userland-mirakc-tuner:main
+    build: .
+    init: true
+    restart: unless-stopped
+    user: '0:0'
+    depends_on:
+      pixd:
+        condition: service_healthy
+    ports:
+      - '${MIRAKC_PORT:-40772}:40772'
+    environment:
+      TZ: Asia/Tokyo
+      RUST_LOG: info
+    volumes:
+      - ./config.yml:/etc/mirakc/config.yml:ro
+      - pixd-ipc:/run/pixd
+      - mirakc-epg:/var/lib/mirakc/epg
+    healthcheck:
+      test: [CMD, wget, -q, -O, /dev/null, 'http://127.0.0.1:40772/api/tuners']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  pixd-ipc:
+  mirakc-epg:
